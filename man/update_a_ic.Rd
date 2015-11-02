@@ -4,11 +4,13 @@
 \alias{update_a_ic}
 \title{Update one element of scores A}
 \usage{
-update_a_ic(obj_fun, x_i, a_ic, v_c, s_i, lambda, mu0)
+update_a_ic(obj_fun, obj_grad_a, x_i, a_ic, v_c, s_i, lambda, mu0)
 }
 \arguments{
 \item{obj_fun}{Version of loss given by bregman divergence between data and
 link to use in current updates.}
+
+\item{obj_grad_a}{Gradient of the provided loss, with respect to a.}
 
 \item{x_i}{The i^th sample of X.}
 

@@ -4,11 +4,13 @@
 \alias{update_v_jc}
 \title{Update one element of loadings V}
 \usage{
-update_v_jc(obj_fun, x_j, v_jc, a_c, s_j, lambda, mu0)
+update_v_jc(obj_fun, obj_grad_v, x_j, v_jc, a_c, s_j, lambda, mu0)
 }
 \arguments{
 \item{obj_fun}{Version of loss given by bregman divergence between data and
 link to use in current updates.}
+
+\item{obj_grad_v}{Gradient of the provided loss, with respect to v.}
 
 \item{x_j}{The j^th dimension of X.}
 

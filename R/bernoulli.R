@@ -21,9 +21,28 @@ bern_obj <- function(x, a, v, s, lambda, mu0) {
   sum(log(1 + exp(- z * (a * v + s)))) + lambda * sum(log(1 + exp(- mu0 * (a * v + s))))
 }
 
+#' @title Gradient of Bregman Loss in Bernoulli Case with respect to v
+bern_grad_v <- function(x, a, v, s, lambda, mu0) {
+  if(is.null(mu0)) {
+    mu0 <- 2 * rep(0, length(x)) - 1
+  }
+  z <- 2 * x - 1
+  sum(- z * a * r(z * (a * v + s))) +  lambda * sum(- mu0 * v * r(mu0 * (a * v + s)))
+}
+
+#' @title Gradient of Bregman Loss in Bernoulli Case with respect to a
+bern_grad_a <- function(x, a, v, s, lambda, mu0) {
+  if(is.null(mu0)) {
+    mu0 <- 2 * rep(0, length(x)) - 1
+  }
+  z <- 2 * x - 1
+  sum(- z * v * r(z * (a * v + s))) +  lambda * sum(- mu0 * a * r(mu0 * (a * v + s)))
+}
+
 #' @title Update one element of scores A
 #' @param obj_fun Version of loss given by bregman divergence between data and
 #' link to use in current updates.
+#' @param obj_grad_a Gradient of the provided loss, with respect to a.
 #' @param x_i The i^th sample of X.
 #' @param a_ic The initial value of a_ic to start the search from.
 #' @param v_c The c^th component of V.
@@ -32,9 +51,10 @@ bern_obj <- function(x, a, v, s, lambda, mu0) {
 #' @param mu0 The value to regularize towards.
 #' @return a_ic The updated version of a_ic.
 #' @export
-update_a_ic <- function(obj_fun, x_i, a_ic, v_c, s_i, lambda, mu0) {
+update_a_ic <- function(obj_fun, obj_grad_a, x_i, a_ic, v_c, s_i, lambda, mu0) {
   f_min_a <- function(a) { obj_fun(x_i, a, v_c, s_i, lambda, mu0) }
-  optim_a <- optim(a_ic, f_min_a, method = "BFGS")
+  f_grad_a <- function(a) { obj_grad_a(x_i, a, v_c, s_i, lambda, mu0) }
+  optim_a <- optim(a_ic, f_min_a, f_grad_a, method = "BFGS")
   if(optim_a$convergence == 1) warning("failed to converge")
   return (optim_a$par)
 }
@@ -42,6 +62,7 @@ update_a_ic <- function(obj_fun, x_i, a_ic, v_c, s_i, lambda, mu0) {
 #' @title Update one element of loadings V
 #' @param obj_fun Version of loss given by bregman divergence between data and
 #' link to use in current updates.
+#' @param obj_grad_v Gradient of the provided loss, with respect to v.
 #' @param x_j The j^th dimension of X.
 #' @param v_jc The initial value of v_jc to start the search from.
 #' @param a_c The c^th component of A.
@@ -50,9 +71,10 @@ update_a_ic <- function(obj_fun, x_i, a_ic, v_c, s_i, lambda, mu0) {
 #' @param mu0 The value to regularize towards.
 #' @return v_jc The updated version of v_jc.
 #' @export
-update_v_jc <- function(obj_fun, x_j, v_jc, a_c, s_j, lambda, mu0) {
+update_v_jc <- function(obj_fun, obj_grad_v, x_j, v_jc, a_c, s_j, lambda, mu0) {
   f_min_v <- function(v) { obj_fun(x_j, a_c, v, s_j, lambda, mu0) }
-  optim_v <- optim(v_jc, f_min_v, method = "BFGS")
+  f_grad_v <- function(v) { obj_grad_v(x_j, a_c, v, s_j, lambda, mu0) }
+  optim_v <- optim(v_jc, f_min_v, f_grad_v, method = "BFGS")
   if(optim_v$convergence == 1) warning("failed to converge")
   return (optim_v$par)
 }
@@ -86,12 +108,14 @@ bern_exp_pca <- function(X, n_comp = 2, n_cycle = 30, n_iter = 30, eps = 1e-4,
       for(cur_iter in seq_len(n_iter)) {
         cat(sprintf("cycle %g \t component %g \t iteration %g \n", cur_cycle, cur_comp, cur_iter))
         for(i in seq_len(nrow(X))) {
-          A[i, cur_comp] <- update_a_ic(bern_obj, X[i, ], A[i, cur_comp],
-                                        V[, cur_comp], S[i, ], lambda, mu0)
+          A[i, cur_comp] <- update_a_ic(bern_obj, bern_grad_a, X[i, ],
+                                        A[i, cur_comp], V[, cur_comp], S[i, ],
+                                        lambda, mu0)
         }
         for(j in seq_len(ncol(X))) {
-          V[j, cur_comp] <- update_v_jc(bern_obj, X[, j], V[j, cur_comp],
-                                        A[, cur_comp], S[, j], lambda, mu0)
+          V[j, cur_comp] <- update_v_jc(bern_obj, bern_grad_v, X[, j],
+                                        V[j, cur_comp], A[, cur_comp], S[, j],
+                                        lambda, mu0)
         }
       }
     }
