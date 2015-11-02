@@ -4,22 +4,17 @@
 \alias{bern_exp_pca}
 \title{Bernoulli PCA with one component}
 \usage{
-bern_exp_pca(X, a0 = NULL, v0 = NULL, iter_max = 100, eps = 1e-04)
+bern_exp_pca(X, n_comp = 2, n_cycle = 30, n_iter = 30, eps = 1e-04,
+  lambda = 0.1, mu0 = NULL)
 }
 \arguments{
 \item{X}{The n x p binary matrix with samples along rows which we want to
 decompose using exponential family PCA.}
 
-\item{a0}{Initial values for the latent scores. If not supplied, initialized
-with standard normals.}
-
-\item{v0}{Initial values for loading vector. If not supplied, initialized
-with standard normals.}
-
-\item{iter_max}{The maximum number of iterations to run the PCA.}
-
 \item{eps}{The convergence criterion. If the mean change in the scores is
 less than eps, we return.}
+
+\item{iter_max}{The maximum number of iterations to run the PCA.}
 }
 \value{
 A list containing the converged values of a and v, along with traces
