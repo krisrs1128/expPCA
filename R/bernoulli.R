@@ -18,7 +18,7 @@ bern_obj <- function(x, a, v, s, lambda, mu0) {
     mu0 <- 2 * rep(0, length(x)) - 1
   }
   z <- 2 * x - 1
-  sum(log(1 + exp(- z * a * v))) + lambda * sum(log(1 + exp(- mu0 * a * v)))
+  sum(log(1 + exp(- z * (a * v + s)))) + lambda * sum(log(1 + exp(- mu0 * (a * v + s))))
 }
 
 #' @title Update one element of scores A
