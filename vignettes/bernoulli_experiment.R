@@ -11,19 +11,19 @@ library("dplyr")
 
 ## ---- setup ----
 n <- 1000
-k <- 5
-d <- 50
-iter_max <- 20
+k <- 3
+d <- 15
+iter_max <- 50
 X_data <- generate_data(k, n, d, .5, 0.1)
 heatmap(X_data$X)
 
 ## ---- pca ----
-pca_res <- bern_exp_pca(X_data$X, iter_max = iter_max)
+pca_res <- bern_exp_pca(X_data$X, iter_max = iter_max, eps = 1e-10, lambda = 0.05)
 a_df <- data.frame(a = pca_res$a, label = X_data$copies)
 
 ## ---- study-pca ----
 ggplot(a_df) +
-  geom_jitter(aes(x = a, y = 0, col = as.factor(label))) +
+  geom_jitter(aes(x = a, y = 0, col = as.factor(label)), alpha = 0.5) +
   ylim(c(-5, 5)) +
   ggtitle("Exponential Family PCA Scores (1-d)")
 
