@@ -23,10 +23,13 @@ r <- function(x) {
 #' @return The function to optimize over a, corresponding to the current values
 #' of the loadings and the i^th sample of X.
 #' @export
-bern_breg_obj_a <- function(x, v) {
+bern_breg_obj_a <- function(x, v, mu0 = NULL) {
   z <- 2 * x - 1
-  function(a) {
-    sum(log(1 + exp(- z * a * v)))
+  if(is.null(mu0)) {
+    mu0 <- 2 * rep(0, length(x)) - 1
+  }
+  function(a, lambda = 0.01) {
+    sum(log(1 + exp(- z * a * v))) + lambda * sum(log(1 + exp(- mu0 * a * v)))
   }
 }
 
@@ -38,10 +41,13 @@ bern_breg_obj_a <- function(x, v) {
 #' @return Gradient of the function to optimize over a, corresponding to the
 #' current values of the loadings and the i^th sample of X.
 #' @export
-bern_breg_grad_a <- function(x, v) {
+bern_breg_grad_a <- function(x, v, mu0 = NULL) {
   z <- 2 * x - 1
-  function(a) {
-    sum(- z * v * r(z * a * v))
+  if(is.null(mu0)) {
+    mu0 <- 2 * rep(0, length(x)) - 1
+  }
+  function(a, lambda = 0.1) {
+    sum(- z * v * r(z * a * v)) +  lambda * sum(- mu0 * v * r(z * a * v))
   }
 }
 
@@ -56,10 +62,13 @@ bern_breg_grad_a <- function(x, v) {
 #' optimization over loadings.
 #' @return The function to optimize over v, corresponding to the current values
 #' of the scores and the i^th dimension of X.
-bern_breg_obj_v <- function(x, a) {
+bern_breg_obj_v <- function(x, a, mu0 = NULL) {
   z <- 2 * x - 1
-  function(v) {
-    sum(log(1 + exp(- z * a * v)))
+  if(is.null(mu0)) {
+    mu0 <- 2 * rep(0, length(x)) - 1
+  }
+  function(v, lambda = 0.1) {
+    sum(log(1 + exp(- z * a * v))) + lambda * sum(log(1 + exp(- mu0 * a * v)))
   }
 }
 
@@ -71,10 +80,13 @@ bern_breg_obj_v <- function(x, a) {
 #' @return The gradient of the function to optimize over v, corresponding to the
 #' current values of the scores and the i^th dimension of X.
 #' @export
-bern_breg_grad_v <- function(x, a) {
+bern_breg_grad_v <- function(x, a, mu0 = NULL) {
   z <- 2 * x - 1
-  function(v) {
-    sum(- z * a * r(z * a * v))
+  if(is.null(mu0)) {
+    mu0 <- 2 * rep(0, length(x)) - 1
+  }
+  function(v, lambda = 0.1) {
+    sum(- z * a * r(z * a * v)) + lambda * sum(- mu0 * a * r(z * a * v))
   }
 }
 
@@ -87,11 +99,11 @@ bern_breg_grad_v <- function(x, a) {
 #' @param v_cur The current values of the loadings.
 #' @return The scores at the next iteration.
 #' @export
-a_step <- function(X, a_cur, v_cur) {
+a_step <- function(X, a_cur, v_cur, lambda = 0.1) {
   a_next <- a_cur
   for(i in seq_len(nrow(X))) {
-    f_min_a <- bern_breg_obj_a(X[i, ], v_cur)
-    f_grad_a <- bern_breg_grad_a(X[i, ], v_cur)
+    f_min_a <-  function(a) { bern_breg_obj_a(X[i, ], v_cur)(a, lambda) }
+    f_grad_a <- function(a) { bern_breg_grad_a(X[i, ], v_cur)(a, lambda) }
     optim_a <- optim(a_cur[i], f_min_a, f_grad_a, method = "BFGS")
     if(optim_a$convergence == 1) warning("failed to converge")
     a_next[i] <- optim_a$par
@@ -107,11 +119,11 @@ a_step <- function(X, a_cur, v_cur) {
 #' search for the next iteration's loadings.
 #' @return The loadings at the next iteration.
 #' @export
-v_step <- function(X, a_cur, v_cur) {
+v_step <- function(X, a_cur, v_cur, lambda = 0.1) {
   v_next <- v_cur
   for(j in seq_len(ncol(X))) {
-    f_min_v <- bern_breg_obj_v(X[, j], a_cur)
-    f_grad_v <- bern_breg_grad_v(X[, j], a_cur)
+    f_min_v <- function(v) { bern_breg_obj_v(X[, j], a_cur)(v, lambda) }
+    f_grad_v <- function(x) { bern_breg_grad_v(X[, j], a_cur)(v, lambda) }
     optim_v <- optim(v_cur[j], f_min_v, f_grad_v, method = "BFGS")
     if(optim_v$convergence == 1) warning("failed to converge")
     v_next[j] <- optim_v$par
@@ -133,7 +145,8 @@ v_step <- function(X, a_cur, v_cur) {
 #' of their values across the optimization [A and V, the columns are values
 #' across iterations].
 #' @references Collins, Michael, Sanjoy Dasgupta, and Robert E. Schapire. "A generalization of principal components analysis to the exponential family." Advances in neural information processing systems. 2001.
-bern_exp_pca <- function(X, a0 = NULL, v0 = NULL, iter_max = 100, eps = 1e-4) {
+bern_exp_pca <- function(X, a0 = NULL, v0 = NULL, iter_max = 100, eps = 1e-4,
+                         lambda = 0.1) {
   # initialize score and loadings, if not supplied
   if(is.null(a0)) {
     a0 <- rnorm(nrow(X))
@@ -144,13 +157,13 @@ bern_exp_pca <- function(X, a0 = NULL, v0 = NULL, iter_max = 100, eps = 1e-4) {
 
   # initialize trace of scores / loadings
   A <- cbind(a0, matrix(0, length(a0), iter_max))
-  V <- matrix(v0, length(v0), iter_max)
+  V <- cbind(v0, matrix(0, length(v0), iter_max))
 
   # alternating minimization
   for(iter in seq_len(iter_max)) {
     cat(sprintf("iteration %g \n", iter))
-    A[, iter + 1] <- a_step(X, A[, iter], V[, iter])
-    V[, iter + 1] <- v_step(X, A[, iter + 1], V[, iter])
+    A[, iter + 1] <- a_step(X, A[, iter], V[, iter], lambda)
+    V[, iter + 1] <- v_step(X, A[, iter + 1], V[, iter], lambda)
 
     tol <- mean(abs(A[, iter + 1] - A[, iter]))
     if(tol < eps) break
