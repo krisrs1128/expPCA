@@ -112,9 +112,9 @@ v_step <- function(X, a_cur, v_cur) {
   for(j in seq_len(ncol(X))) {
     f_min_v <- bern_breg_obj_v(X[, j], a_cur)
     f_grad_v <- bern_breg_grad_v(X[, j], a_cur)
-    optim_v <- optim(v_cur[i], f_min_v, f_grad_v, method = "BFGS")
+    optim_v <- optim(v_cur[j], f_min_v, f_grad_v, method = "BFGS")
     if(optim_v$convergence == 1) warning("failed to converge")
-    v_next[i] <- optim_v$par
+    v_next[j] <- optim_v$par
   }
   return (v_next)
 }
