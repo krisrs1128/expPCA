@@ -12,6 +12,7 @@ r <- function(x) {
 }
 
 #' @title Bregman Loss in Bernoulli case
+#' @export
 bern_obj <- function(x, a, v, s, lambda, mu0) {
   if(is.null(mu0)) {
     mu0 <- 2 * rep(0, length(x)) - 1
@@ -30,6 +31,7 @@ bern_obj <- function(x, a, v, s, lambda, mu0) {
 #' @param lambda The regularization parameter in the optimizatyion.
 #' @param mu0 The value to regularize towards.
 #' @return a_ic The updated version of a_ic.
+#' @export
 update_a_ic <- function(obj_fun, x_i, a_ic, v_c, s_i, lambda, mu0) {
   f_min_a <- function(a) { obj_fun(x_i, a, v_c, s_i, lambda, mu0) }
   optim_a <- optim(a_ic, f_min_a, method = "BFGS")
@@ -65,6 +67,7 @@ update_v_jc <- function(obj_fun, x_j, v_jc, a_c, s_j, lambda, mu0) {
 #' of their values across the optimization [A and V, the columns are values
 #' across iterations].
 #' @references Collins, Michael, Sanjoy Dasgupta, and Robert E. Schapire. "A generalization of principal components analysis to the exponential family." Advances in neural information processing systems. 2001.
+#' @export
 bern_exp_pca <- function(X, n_comp = 2, n_cycle = 30, n_iter = 30, eps = 1e-4,
                          lambda = 0.1, mu0 = NULL) {
   # initialize score and loadings to 0
