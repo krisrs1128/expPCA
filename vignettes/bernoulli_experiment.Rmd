@@ -1,0 +1,30 @@
+---
+title: "Experiments with Bernoulli PCA"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+library("knitr")
+read_chunk("bernoulli_experiment.R")
+```
+
+## Experiment Setup
+
+```{r, libraries}
+```
+
+```{r, setup}
+```
+
+## Exponential Family PCA
+
+```{r, pca}
+```
+
+```{r, study-pca}
+```
