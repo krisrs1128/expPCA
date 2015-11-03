@@ -1,6 +1,6 @@
 
 ################################################################################
-# Experiment using exponential family PCA for binary data data
+# Experiment using exponential family PCA for binary data
 ################################################################################
 
 ## ---- libraries ----
@@ -15,7 +15,7 @@ theme_set(theme_bw())
 n <- 1000
 k <- 5
 d <- 15
-X_data <- generate_data(k, n, d, .5, 0.1)
+X_data <- generate_bern_data(k, n, d, .5, 0.1)
 heatmap(X_data$X)
 
 ## ---- pca ----
