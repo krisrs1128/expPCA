@@ -6,6 +6,24 @@
 \usage{
 bern_grad_v(x, a, v, s, lambda, mu0)
 }
+\arguments{
+\item{x}{A single row of column of x, for which we want to minimize distance
+to the mean.}
+
+\item{a}{Either a vector or scale representing the latent scores.}
+
+\item{v}{Either a vector or scale representing the latent loadings.}
+
+\item{s}{Either the s^th row or column of the matrix AV^T - a_{c}v_{c}^{T}}
+
+\item{lambda}{The regularization parameter in the optimization.}
+
+\item{mu0}{The value to regularize towards.}
+}
+\value{
+The value of the gradient of the bregman loss with respect to the
+parameter v.
+}
 \description{
 Gradient of Bregman Loss in Bernoulli Case with respect to v
 }

@@ -6,6 +6,23 @@
 \usage{
 bern_obj(x, a, v, s, lambda, mu0)
 }
+\arguments{
+\item{x}{A single row of column of x, for which we want to minimize distance
+to the mean.}
+
+\item{a}{Either a vector or scale representing the latent scores.}
+
+\item{v}{Either a vector or scale representing the latent loadings.}
+
+\item{s}{Either the s^th row or column of the matrix AV^T - a_{c}v_{c}^{T}}
+
+\item{lambda}{The regularization parameter in the optimization.}
+
+\item{mu0}{The value to regularize towards.}
+}
+\value{
+The value of the bregman loss of x given the current parameters.
+}
 \description{
 Bregman Loss in Bernoulli case
 }
