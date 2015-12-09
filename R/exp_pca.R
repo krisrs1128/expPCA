@@ -66,11 +66,12 @@ update_v_jc <- function(obj_fun, obj_grad_v, x_j, v_jc, a_c, s_j, lambda, mu0) {
 #' less than eps, we return.
 #' @param lambda The regularization parameter in the optimization.
 #' @param mu0 The value to regularize towards.
+#' @param verbose Print iterations of procedure?
 #' @return A list containing the converged values of A and V.
 #' @references Collins, Michael, Sanjoy Dasgupta, and Robert E. Schapire. "A generalization of principal components analysis to the exponential family." Advances in neural information processing systems. 2001.
 #' @export
 exp_pca <- function(obj_fun, obj_grad_a, obj_grad_v, X, n_comp, n_cycle, n_iter,
-                    eps, lambda, mu0) {
+                    eps, lambda, mu0, verbose = FALSE) {
   # initialize score and loadings to 0
   A <- matrix(0, nrow(X), n_comp)
   V <- matrix(0, ncol(X), n_comp)
@@ -85,7 +86,7 @@ exp_pca <- function(obj_fun, obj_grad_a, obj_grad_v, X, n_comp, n_cycle, n_iter,
 
       # alternating minimization
       for(cur_iter in seq_len(n_iter)) {
-        cat(sprintf("cycle %g \t component %g \t iteration %g \n", cur_cycle, cur_comp, cur_iter))
+        if(verbose) cat(sprintf("cycle %g \t component %g \t iteration %g \n", cur_cycle, cur_comp, cur_iter))
         for(i in seq_len(nrow(X))) {
           A[i, cur_comp] <- update_a_ic(obj_fun, obj_grad_a, X[i, ],
                                         A[i, cur_comp], V[, cur_comp], S[i, ],
